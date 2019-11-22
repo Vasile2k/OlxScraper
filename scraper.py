@@ -2,6 +2,7 @@ __author__ = "Vasile2k"
 
 import requests
 from html.parser import HTMLParser
+import ast
 
 queries = [
     "Corsair K95",
@@ -21,6 +22,14 @@ def clean_string(input):
     return str(input).replace("\n", "").replace("\\n", "").replace("\t", "").replace(" ", "").replace("\\", "")
 
 
+def clean_shitty_decoding(input):
+    # clean the unescaped string
+    # encode all symbols to unicode, escape them, keep only ascii, decode
+    # now you have a clean string
+    # fuck python
+    return str(input).encode("utf-8").decode("unicode_escape").encode("ascii", errors="ignore").decode()
+
+
 class OlxResponseParser(HTMLParser):
 
     def __init__(self):
@@ -33,7 +42,6 @@ class OlxResponseParser(HTMLParser):
         # convert attrs to dict
         attrs = dict(attrs)
         # clean the tag attribute because the parser seem so add a lot of shit
-        tag2 = tag
         tag = clean_string(tag)
         if tag == "table" and "id" in attrs and attrs["id"] == "offers_table":
             # start the table with listings
@@ -54,10 +62,10 @@ class OlxResponseParser(HTMLParser):
     def handle_data(self, data):
         if not clean_string(data) == "":
             if self.__has_data:
-                print("anunt -> ", data)
+                print("anunt -> ", clean_shitty_decoding(data))
                 self.__has_data = False
             elif self.__has_price_data:
-                print("price -> ", data)
+                print("price -> ", clean_shitty_decoding(data))
                 self.__has_price_data = False
 
 
