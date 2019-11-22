@@ -2,7 +2,6 @@ __author__ = "Vasile2k"
 
 import requests
 from html.parser import HTMLParser
-import ast
 
 queries = [
     "Corsair K95",
