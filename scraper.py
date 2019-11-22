@@ -14,6 +14,9 @@ user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 
              " Chrome/35.0.1916.47 Safari/537.36"
 headers = {"User-Agent": user_agent}
 
+products = {}
+last_product = []
+
 
 def clean_string(input):
     # clean the data from tabs, spaces, slashes and/or newlines
@@ -28,6 +31,29 @@ def clean_shitty_decoding(input):
     # now you have a clean string
     # fuck python
     return str(input).encode("utf-8").decode("unicode_escape").encode("ascii", errors="ignore").decode()
+
+
+def add_product(product):
+    if not last_product == []:
+        raise Exception("Add the price of the previous product before adding a new one!")
+    if not isinstance(product, str):
+        raise TypeError("\'product\' should be a string!")
+    last_product.append(product)
+
+
+def add_price(price):
+    if last_product == []:
+        raise Exception("Add a product before adding a price!")
+    if not isinstance(price, str):
+        raise TypeError("\'price\' should be a string!")
+    products[last_product[0]] = price
+    last_product.clear()
+
+
+def list_all_products():
+    max_len = max(len(p) for p in products)
+    for k in products:
+        print(k.ljust(max_len + 4), " -> ", products[k])
 
 
 class OlxResponseParser(HTMLParser):
@@ -62,10 +88,10 @@ class OlxResponseParser(HTMLParser):
     def handle_data(self, data):
         if not clean_string(data) == "":
             if self.__has_data:
-                print("anunt -> ", clean_shitty_decoding(data))
+                add_product(clean_shitty_decoding(data))
                 self.__has_data = False
             elif self.__has_price_data:
-                print("price -> ", clean_shitty_decoding(data))
+                add_price(clean_shitty_decoding(data))
                 self.__has_price_data = False
 
 
@@ -78,3 +104,5 @@ if __name__ == "__main__":
         parser = OlxResponseParser()
         parser.feed(str(response.content))
         parser.close()
+
+    list_all_products()
